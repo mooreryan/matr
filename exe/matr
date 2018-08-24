@@ -2,6 +2,8 @@
 
 Signal.trap("PIPE", "EXIT")
 
+require "matr"
+
 require "set"
 require "trollop"
 
@@ -10,89 +12,33 @@ opts = Trollop.options do
 
   Take a three-column matrix file and ensure that it is symmetric for input into R.
 
+  *Note* -- I ALWAYS enforce symmetry of the output.
+
+  Option details
+  --------------
+
+  --self-scores: I will add a self score of this value if one is not already specified.
+  --ensure-self-scores: I will ensure all self scores equal the value set in --self-scores even if a self-score is present but set to something else.
+
+  Things I do
+  ------------------
+
+    - Raise error if a source-target pair is specified twice with a different score
+    - Raise error if source-target and target-source are both specified and they don't match.
+
   Options:
   EOS
 
   opt(:infile, "Input file", type: :string)
 
+  opt(:missing_score, "Score for missing connections (unless they are already put in because of symmetry)", default: 0)
+
+  # opt(:ensure_symmetry, "This flag will ensure that your output will be a symmetric matrix.", default: true)
+
   opt(:self_score, "Score for self connections", default: 100)
-  opt(:missing_score, "Score for missing connections", default: 0)
+  opt(:ensure_self_scores, "This flag will ensure that self hit scores all match the value of --self-score option", default: true)
+
   opt(:output_style, "Output style [wide,long]", default: "wide")
 end
 
-infile = opts[:infile]
-self_score = opts[:self_score]
-missing_score = opts[:missing_score]
-output_style = opts[:output_style]
-
-unless File.exist? infile
-  abort "FATAL -- infile '#{infile}' does not exist"
-end
-
-unless output_style == "wide" || output_style == "long"
-  abort "FATAL -- output style must be either wide or long"
-end
-
-graph = Hash.new { |ht, k| ht[k] = Hash.new }
-all_keys = Set.new
-header   = nil
-
-File.open(infile, "rt").each_line.with_index do |line, idx|
-  line.chomp!
-
-  if idx.zero?
-    header = line
-  else
-    source, target, score = line.split "\t"
-
-    all_keys << source << target
-
-    # If you have duplicates with different scores, that's an error: a
-    # => b = 10 and a => b = 20
-    if graph[source].has_key?(target) && graph[source][target] != score
-      abort "source--target (#{source}--#{target}) was repeated with a different score"
-    end
-
-    graph[source][target] = score
-
-    # Since you might have a files that specifies a => b = 10, and b
-    # => a = 10, that would be okay.  But if you have a => b = 10, and
-    # b => a = 5, then that would be an error.
-    if graph[target].has_key?(source) && graph[target][source] != score
-      abort "target--source (#{target}--#{source}) is specified seperately from source--target (#{source}--#{target}), BUT there scores do not match.  This means your matrix is NOT symmetric."
-
-    end
-
-    graph[target][source] = score
-
-    unless graph[target].has_key? target
-      graph[target][target] = self_score
-    end
-
-    unless graph[source].has_key? source
-      graph[source][source] = self_score
-    end
-  end
-end
-
-if output_style == "long"
-  puts header
-
-  all_keys.each do |source|
-    all_keys.each do |target|
-      puts [source, target, graph[source][target] || missing_score].join "\t"
-    end
-  end
-else
-  all_keys = all_keys.sort
-
-  puts ["", all_keys].join "\t"
-
-  all_keys.each do |source|
-    row = all_keys.map do |target|
-      graph[source][target] || missing_score
-    end
-
-    puts [source, row].join "\t"
-  end
-end
+Matr.main opts

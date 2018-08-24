@@ -1,0 +1,3 @@
+source	target	score
+ryan	apple	10
+apple	ryan	15
