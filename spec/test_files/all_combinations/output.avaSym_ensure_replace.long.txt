@@ -1,0 +1,10 @@
+source	target	score
+amelia	amelia	100
+amelia	prasanna	85
+amelia	ryan	90
+prasanna	amelia	85
+prasanna	prasanna	100
+prasanna	ryan	-10
+ryan	amelia	90
+ryan	prasanna	-10
+ryan	ryan	100

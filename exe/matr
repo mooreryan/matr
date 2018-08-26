@@ -7,38 +7,93 @@ require "matr"
 require "set"
 require "trollop"
 
+mode_info = <<-EOS
+  Modes
+  -----
+
+    - All vs. all non-symmetric (ava): I will make a square matrix
+      that contains all versus all comparisons for each item
+      specified, regardless of the column that the item was in.  Any
+      comparisons not specified in the input file will get an 'na'
+      value (or whatever you tell us to replace it with).
+
+    - All vs. all symmetric (ava_symmetric): I will also ensure
+      symmetry by adding a reverse entry for each row (i.e., source -
+      target - score AND target - source - score), even if the reverse
+      entry isn't specified explicitly.  If this isn't possible, then
+      I will raise an error.
+EOS
+
 opts = Trollop.options do
   banner <<-EOS
 
-  Take a three-column matrix file and ensure that it is symmetric for input into R.
+  Take a three-column matrix file and do stuff with it.
 
-  *Note* -- I ALWAYS enforce symmetry of the output.
+
+#{mode_info}
 
   Option details
   --------------
 
-  --self-scores: I will add a self score of this value if one is not already specified.
-  --ensure-self-scores: I will ensure all self scores equal the value set in --self-scores even if a self-score is present but set to something else.
+    --self-scores: I will add a self score of this value if one is not
+      already specified.
 
-  Things I do
-  ------------------
+    --ensure-self-scores: I will ensure all self scores equal the
+      value set in --self-scores even if a self-score is present but
+      set to something else.
 
-    - Raise error if a source-target pair is specified twice with a different score
-    - Raise error if source-target and target-source are both specified and they don't match.
+    --na-replace <value>: If you pass this flag, I will replace any
+      'na' values with this value.
+
 
   Options:
   EOS
 
-  opt(:infile, "Input file", type: :string)
+  opt(:infile,
+      "Input file",
+      type: :string)
 
-  opt(:missing_score, "Score for missing connections (unless they are already put in because of symmetry)", default: 0)
+  opt(:mode,
+      "Which mode should I run in?",
+      default: "ava")
+  opt(:print_modes,
+      "Print available modes then exit")
 
-  # opt(:ensure_symmetry, "This flag will ensure that your output will be a symmetric matrix.", default: true)
+  opt(:na_replace,
+      "Replace any 'na' values with this value",
+      default: 0)
 
-  opt(:self_score, "Score for self connections", default: 100)
-  opt(:ensure_self_scores, "This flag will ensure that self hit scores all match the value of --self-score option", default: true)
+  opt(:self_score,
+      "Score for self connections",
+      default: 100)
+  opt(:ensure_self_scores,
+      "This flag will ensure that self hit scores all match the " \
+      "value of --self-score option")
 
-  opt(:output_style, "Output style [wide,long]", default: "wide")
+  opt(:output_style,
+      "Output style [wide,long]",
+      default: "wide")
 end
 
-Matr.main opts
+if opts[:print_modes]
+  help = <<-EOS
+
+  Available modes: ava, ava_symmetric
+
+#{mode_info}
+  EOS
+
+  STDERR.puts help
+  exit
+end
+
+unless opts[:infile_given]
+  abort "FATAL: --infile is a required argument"
+end
+
+begin
+  Matr.main opts
+rescue StandardError => err
+  # We only are meant to throw StandardError
+  abort err
+end

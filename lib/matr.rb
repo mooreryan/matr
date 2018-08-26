@@ -8,11 +8,17 @@ module Matr
   def self.main opts
 
     infile             = opts[:infile]
+    mode               = self.default_opt opts, :mode, "ava"
     self_score         = self.default_opt opts, :self_score, 100
-    missing_score      = self.default_opt opts, :missing_score, 0
-    output_style       = self.default_opt opts, :output_style, "wide"
-    ensure_symmetry    = true # self.default_opt opts, :ensure_symmetry, true
     ensure_self_scores = self.default_opt opts, :ensure_self_scores, true
+
+    if opts[:na_replace_given]
+      missing_score = opts[:na_replace]
+    else
+      missing_score = "na"
+    end
+
+    output_style = self.default_opt opts, :output_style, "wide"
 
     unless File.exist? infile
       raise StandardError, "FATAL -- infile '#{infile}' does not exist"
@@ -36,20 +42,15 @@ module Matr
 
         all_keys << source << target
 
-        # Fix self score if the option is there.
-        if source == target && ensure_self_scores
-          score = self_score
-        end
-
         # If you have duplicates with different scores, that's an error: a
         # => b = 10 and a => b = 20
         if graph[source].has_key?(target) && graph[source][target] != score
-          raise StandardError, "FATAL -- source--target (#{source}--#{target}) was repeated with a different score"
+          raise StandardError, "FATAL -- source--target (#{source}--#{target}) was repeated with a different score.  Old score was #{graph[source][target]}, and the new score was #{score}."
         end
 
         graph[source][target] = score
 
-        if ensure_symmetry
+        if mode == "ava_symmetric"
           # Since you might have a files that specifies a => b = 10, and b
           # => a = 10, that would be okay.  But if you have a => b = 10, and
           # b => a = 5, then that would be an error.
@@ -59,14 +60,17 @@ module Matr
 
           graph[target][source] = score
         end
+      end
+    end
 
-        # Makes sure these weren't already specified earlier.
-        unless graph[target].has_key? target
-          graph[target][target] = self_score
-        end
+    all_keys = all_keys.to_a.sort
 
-        unless graph[source].has_key? source
-          graph[source][source] = self_score
+    # Zip through and add any self scores that weren't added.
+    all_keys.each do |source|
+      all_keys.each do |target|
+        # With ensure_self_scores, we overwrite the self score even if it was already given.  Otherwise, only if it was NOT given.
+        if source == target && (ensure_self_scores || !graph[source][target])
+          graph[source][target] = self_score
         end
       end
     end
@@ -80,8 +84,6 @@ module Matr
         end
       end
     else
-      all_keys = all_keys.sort
-
       puts ["", all_keys].join "\t"
 
       all_keys.each do |source|

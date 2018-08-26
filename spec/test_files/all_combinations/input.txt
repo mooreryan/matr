@@ -1,0 +1,5 @@
+source	target	score
+ryan	amelia	90
+amelia	ryan	90
+amelia	prasanna	85
+ryan	ryan	95
