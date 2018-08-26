@@ -8,6 +8,8 @@ require "set"
 require "trollop"
 
 mode_info = <<-EOS
+  Available modes: ava, ava_symmetric
+
   Modes
   -----
 
@@ -28,7 +30,6 @@ opts = Trollop.options do
   banner <<-EOS
 
   Take a three-column matrix file and do stuff with it.
-
 
 #{mode_info}
 
@@ -61,7 +62,7 @@ opts = Trollop.options do
 
   opt(:na_replace,
       "Replace any 'na' values with this value",
-      default: 0)
+      type: :integer)
 
   opt(:self_score,
       "Score for self connections",
@@ -76,14 +77,7 @@ opts = Trollop.options do
 end
 
 if opts[:print_modes]
-  help = <<-EOS
-
-  Available modes: ava, ava_symmetric
-
-#{mode_info}
-  EOS
-
-  STDERR.puts help
+  STDERR.puts mode_info
   exit
 end
 
