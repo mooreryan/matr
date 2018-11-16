@@ -1,0 +1,4 @@
+apple	apple	100
+apple	pie	10
+pie	apple	na
+pie	pie	100

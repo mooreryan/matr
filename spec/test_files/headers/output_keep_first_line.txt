@@ -1,0 +1,4 @@
+	apple	pear	pie
+apple	100	5	10
+pear	na	100	na
+pie	na	na	100

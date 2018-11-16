@@ -31,6 +31,8 @@ opts = Optimist.options do
 
   Take a three-column matrix file and do stuff with it.
 
+  Note:  The output will sort the keys.
+
 #{mode_info}
 
   Option details
@@ -53,6 +55,8 @@ opts = Optimist.options do
   opt(:infile,
       "Input file",
       type: :string)
+  opt(:no_header,
+      "Pass this opt if the infile does NOT have a header line")
 
   opt(:mode,
       "Which mode should I run in?",

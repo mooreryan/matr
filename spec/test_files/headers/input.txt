@@ -1,0 +1,2 @@
+apple	pie	10
+apple	pear	5

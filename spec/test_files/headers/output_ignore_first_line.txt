@@ -1,0 +1,3 @@
+	apple	pear
+apple	100	5
+pear	na	100

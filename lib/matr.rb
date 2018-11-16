@@ -7,10 +7,11 @@ module Matr
 
   def self.main opts
 
-    infile             = opts[:infile]
-    mode               = self.default_opt opts, :mode, "ava"
-    self_score         = self.default_opt opts, :self_score, 100
-    ensure_self_scores = self.default_opt opts, :ensure_self_scores, true
+    infile               = opts[:infile]
+    mode                 = self.default_opt opts, :mode, "ava"
+    self_score           = self.default_opt opts, :self_score, 100
+    ensure_self_scores   = self.default_opt opts, :ensure_self_scores, true
+    no_header = self.default_opt opts, :no_header, false
 
     if opts[:na_replace_given]
       missing_score = opts[:na_replace]
@@ -35,7 +36,7 @@ module Matr
     File.open(infile, "rt").each_line.with_index do |line, idx|
       line.chomp!
 
-      if idx.zero?
+      if idx.zero? && !no_header
         header = line
       else
         source, target, score = line.split "\t"
@@ -76,7 +77,7 @@ module Matr
     end
 
     if output_style == "long"
-      puts header
+      puts header unless no_header
 
       all_keys.each do |source|
         all_keys.each do |target|

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    matr (0.2.2.pre.test)
+    matr (0.3.0)
       optimist (~> 3.0)
 
 GEM

@@ -1,0 +1,2 @@
+source	target	score
+apple	pie	10

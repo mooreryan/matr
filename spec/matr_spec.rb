@@ -18,9 +18,9 @@ def make_opts infile, mode, ensure_self_scores, na_replace = nil, output_style =
     ensure_self_scores: ensure_self_scores,
 
     # This is how optimist will pass in args.
-    na_replace:         na_replace ? na_replace : nil,
-    na_replace_given:   na_replace ? true : nil,
-    output_style:       output_style
+    na_replace:       na_replace ? na_replace : nil,
+    na_replace_given: na_replace ? true : nil,
+    output_style:     output_style
   }
 
   opts
@@ -38,6 +38,80 @@ RSpec.describe Matr do
         expected = File.open(expected_fname, "rt").read
 
         expect { Matr.main opts }.to output(expected).to_stdout
+      end
+    end
+
+    context "handling headers in input data" do
+      context "wide output" do
+        it "treats first line as header by default" do
+          infile = File.join TEST_FILE_DIR, "headers", "input.txt"
+
+          opts = {
+            infile:       infile,
+            mode:         "ava",
+            self_score:   100,
+            na_replace:   nil,
+            output_style: "wide",
+            no_header:    false
+          }
+
+          expected = File.read File.join(TEST_FILE_DIR, "headers", "output_ignore_first_line.txt")
+
+          expect { Matr.main opts }.to output(expected).to_stdout
+        end
+
+        it "treats first line as data if no_header is passed" do
+          infile = File.join TEST_FILE_DIR, "headers", "input.txt"
+
+          opts = {
+            infile:       infile,
+            mode:         "ava",
+            self_score:   100,
+            na_replace:   nil,
+            output_style: "wide",
+            no_header:    true
+          }
+
+          expected = File.read File.join(TEST_FILE_DIR, "headers", "output_keep_first_line.txt")
+
+          expect { Matr.main opts }.to output(expected).to_stdout
+        end
+      end
+
+      context "long output" do
+        it "prints the header if no_header is not passed" do
+          infile = File.join TEST_FILE_DIR, "headers", "with_header.txt"
+
+          opts = {
+            infile:       infile,
+            mode:         "ava",
+            self_score:   100,
+            na_replace:   nil,
+            output_style: "long",
+            no_header:    false
+          }
+
+          expected = File.read File.join(TEST_FILE_DIR, "headers", "with_header_output.txt")
+
+          expect { Matr.main opts }.to output(expected).to_stdout
+        end
+
+        it "prints NO header if no_header is passed" do
+          infile = File.join TEST_FILE_DIR, "headers", "no_header.txt"
+
+          opts = {
+            infile:       infile,
+            mode:         "ava",
+            self_score:   100,
+            na_replace:   nil,
+            output_style: "long",
+            no_header:    true
+          }
+
+          expected = File.read File.join(TEST_FILE_DIR, "headers", "no_header_output.txt")
+
+          expect { Matr.main opts }.to output(expected).to_stdout
+        end
       end
     end
 
