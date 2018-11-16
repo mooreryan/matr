@@ -17,7 +17,7 @@ def make_opts infile, mode, ensure_self_scores, na_replace = nil, output_style =
     self_score:         100,
     ensure_self_scores: ensure_self_scores,
 
-    # This is how trollop will pass in args.
+    # This is how optimist will pass in args.
     na_replace:         na_replace ? na_replace : nil,
     na_replace_given:   na_replace ? true : nil,
     output_style:       output_style
